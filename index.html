@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Công Thức Siêu Gọn</title>
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --card: #1a1a1a;
+            --border: #333;
+            --accent: #3498db;
+            --text: #ffffff;
+        }
+        body {
+            font-family: sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 12px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h2 { text-align: center; font-size: 1.1rem; margin-bottom: 15px; text-transform: uppercase;}
+        label { display: block; margin: 15px 0 5px; font-weight: bold; font-size: 0.9rem; color: #bbb; }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #222;
+            border: 3px solid var(--border);
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus { border-color: var(--accent); outline: none; }
+
+        /* Hộp nguyên liệu có khả năng thu gọn */
+        .ing-card {
+            background: var(--card);
+            border: 3px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        
+        /* Tiêu đề hộp khi thu gọn */
+        .ing-header {
+            background: #222;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid transparent;
+        }
+        .ing-card.active .ing-header {
+            border-bottom-color: var(--border);
+            background: #2b2b2b;
+        }
+
+        /* Thân hộp chứa các ô nhập */
+        .ing-body {
+            display: none;
+            padding: 12px;
+        }
+        .ing-card.active .ing-body {
+            display: block;
+        }
+        
+        /* Chia 2 cột để tiết kiệm chiều dài điện thoại */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .field { margin-bottom: 6px; }
+        .field span { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid var(--border);
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-top: 5px;
+            cursor: pointer;
+        }
+        .btn-add { background: #27ae60; color: white; border: none; margin-bottom: 15px;}
+        .btn-del { background: #c0392b; color: white; border: none; padding: 8px; margin-top: 5px; font-size: 0.85rem;}
+        .btn-gen { background: var(--accent); color: white; border: none; font-size: 1rem; margin-top: 20px;}
+        .btn-copy { background: #f1c40f; color: black; border: none; margin-bottom: 30px;}
+
+        pre {
+            background: #000;
+            padding: 12px;
+            border: 3px solid var(--border);
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            color: #a6e22e;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Trình Tạo Công Thức (Gọn Nhẹ)</h2>
+    
+    <label>Tên món:</label>
+    <input type="text" id="recipeName" value="Phở Bò Bản Ngắn">
+
+    <label>Danh sách nguyên liệu:</label>
+    <div id="ingredientsList"></div>
+    <button class="btn-add" onclick="addIng()">+ Thêm Nguyên Liệu</button>
+
+    <label>Các bước làm:</label>
+    <textarea id="recipeSteps" rows="4">1. Đun sôi nước dùng phở bò.
+2. Xếp bánh phở đã trần vào tô, thêm thịt bò tái và hành lên trên.
+3. Chan nước dùng thật sôi vào để thịt chín tái và thưởng thức.</textarea>
+
+    <label>Ghi chú:</label>
+    <textarea id="recipeNotes" rows="2">Húp nóng, thêm dấm tỏi hoặc chanh ớt tùy khẩu vị cá nhân.</textarea>
+
+    <button class="btn-gen" onclick="generate()">BẤM TẠO KẾT QUẢ</button>
+
+    <label>Kết quả JSON:</label>
+    <pre id="output">Bấm nút trên để xuất mã...</pre>
+    <button class="btn-copy" onclick="copy()">COPY TOÀN BỘ MÃ</button>
+</div>
+
+<script>
+    let ingCount = 0;
+
+    function addIng(n='', a='', u='', s='') {
+        ingCount++;
+        const div = document.createElement('div');
+        div.className = 'ing-card active'; // Mặc định tạo mới thì bung ra
+        
+        // Thu gọn tất cả các hộp cũ lại để nhường không gian cho hộp mới
+        document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
+
+        div.innerHTML = `
+            <div class="ing-header" onclick="toggleCard(this.parentElement)">
+                <span class="title-text">${n ? n : 'Nguyên liệu mới #' + ingCount}</span>
+                <span class="icon">▼</span>
+            </div>
+            <div class="ing-body">
+                <div class="grid-2">
+                    <div class="field"><span>Tên (n):</span><input class="n" value="${n}" oninput="updateTitle(this)"></div>
+                    <div class="field"><span>Số lượng (a):</span><input class="a" value="${a}"></div>
+                </div>
+                <div class="grid-2">
+                    <div class="field"><span>Đơn vị (u):</span><input class="u" value="${u}"></div>
+                    <div class="field"><span>Sơ chế (s):</span><input class="s" value="${s}"></div>
+                </div>
+                <button class="btn-del" onclick="this.closest('.ing-card').remove()">Xóa nguyên liệu này</button>
+            </div>
+        `;
+        document.getElementById('ingredientsList').appendChild(div);
+        
+        // Tự động cuộn nhẹ xuống hộp mới tạo
+        div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Đóng/Mở hộp khi bấm vào tiêu đề
+    function toggleCard(card) {
+        card.classList.toggle('active');
+    }
+
+    // Tự động cập nhật tên nguyên liệu lên tiêu đề cho dễ quản lý
+    function updateTitle(input) {
+        const card = input.closest('.ing-card');
+        const titleText = card.querySelector('.title-text');
+        titleText.textContent = input.value.trim() || "Chưa nhập tên";
+    }
+
+    // Thêm sẵn dữ liệu mẫu ban đầu (đóng lại cho gọn)
+    addIng("Bánh phở tươi", "500", "g", "Trần sơ");
+    addIng("Thịt bò tái", "200", "g", "Thái mỏng");
+    addIng("Nước cốt xương", "1.5", "Lít", "Ninh ngọt");
+    addIng("Hành lá + Rau thơm", "1", "Ít", "Rửa sạch");
+    document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
+
+    function generate() {
+        let ings = [];
+        document.querySelectorAll('.ing-card').forEach(c => {
+            const n = c.querySelector('.n').value;
+            const a = c.querySelector('.a').value;
+            const u = c.querySelector('.u').value;
+            const s = c.querySelector('.s').value;
+            if(n || a || u || s) {
+                ings.push({ n, a, u, s });
+            }
+        });
+
+        let json = `{\n  name: "${document.getElementById('recipeName').value}",\n  ings: [\n`;
+        ings.forEach((i, idx) => {
+            json += `    { n: "${i.n}", a: "${i.a}", u: "${i.u}", s: "${i.s}" }${idx < ings.length-1 ? ',' : ''}\n`;
+        });
+        json += `  ],\n\n  steps: "\n${document.getElementById('recipeSteps').value.replace(/\n/g, '\\n\\\n')}\n",\n\n  notes: "\n${document.getElementById('recipeNotes').value.replace(/\n/g, '\\n\\\n')}\n"\n}`;
+        document.getElementById('output').textContent = json;
+    }
+
+    function copy() {
+        const text = document.getElementById('output').textContent;
+        navigator.clipboard.writeText(text);
+        alert("Đã copy thành công!");
+    }
+</script>
+</body>
+</html>
