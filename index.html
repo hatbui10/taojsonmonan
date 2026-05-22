@@ -153,7 +153,6 @@
     <option value="nhánh"></option>
     <option value="lát mỏng"></option>
     <option value="bát"></option>
-    
 </datalist>
 
 <datalist id="stateSuggestions">
@@ -181,7 +180,6 @@
         
         document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
 
-        // CẬP NHẬT: Sử dụng thuộc tính onfocus="this.blur(); this.focus();" kết hợp để ép trình duyệt di động hiển thị danh sách ngay khi chạm vào.
         div.innerHTML = `
             <div class="ing-header" onclick="toggleCard(this.parentElement)">
                 <span class="title-text">${n ? n : 'Nguyên liệu mới #' + ingCount}</span>
@@ -200,7 +198,6 @@
             </div>
         `;
         document.getElementById('ingredientsList').appendChild(div);
-        
         div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -214,30 +211,42 @@
         titleText.textContent = input.value.trim() || "Chưa nhập tên";
     }
 
-    // Khởi tạo dữ liệu mẫu ban đầu
+    // Khởi tạo dữ liệu mẫu
     addIng("Bánh phở tươi", "500", "g", "trần sơ");
     addIng("Thịt bò tái", "200", "g", "thái mỏng");
     addIng("Nước cốt xương", "1.5", "lít", "ninh ngọt");
     addIng("Hành lá + Rau thơm", "1", "ít", "rửa sạch");
     document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
 
+    // HÀM GENERATE ĐÃ ĐƯỢC FIX HOÀN TOÀN LỖI ĐỊNH DẠNG CHUỖI ĐA DÒNG
     function generate() {
         let ings = [];
         document.querySelectorAll('.ing-card').forEach(c => {
-            const n = c.querySelector('.n').value;
-            const a = c.querySelector('.a').value;
-            const u = c.querySelector('.u').value;
-            const s = c.querySelector('.s').value;
+            const n = c.querySelector('.n').value.trim();
+            const a = c.querySelector('.a').value.trim();
+            const u = c.querySelector('.u').value.trim();
+            const s = c.querySelector('.s').value.trim();
             if(n || a || u || s) {
                 ings.push({ n, a, u, s });
             }
         });
 
-        let json = `{\n  name: "${document.getElementById('recipeName').value}",\n  ings: [\n`;
+        // Tạo phần đầu JSON bằng Template String sạch sẽ
+        let json = `{\n  name: "${document.getElementById('recipeName').value.trim()}",\n  ings: [\n`;
+        
         ings.forEach((i, idx) => {
-            json += `    { n: "${i.n}", a: "${i.a}", u: "${i.u}", s: "${i.s}" }${idx < ings.length-1 ? ',' : ''}\n`;
+            json += `    { n: "${i.n}", a: "${i.a}", u: "${i.u}", s: "${i.s}" }${idx < ings.length - 1 ? ',' : ''}\n`;
         });
-        json += `  ],\n\n  steps: "\n${document.getElementById('recipeSteps').value.replace(/\n/g, '\\n\\\n')}\n",\n\n  notes: "\n${document.getElementById('recipeNotes').value.replace(/\n/g, '\\n\\\n')}\n"\n}`;
+        
+        json += `  ],\n\n`;
+
+        // Ép định dạng bọc nội dung steps và notes vào trong cặp dấu huyền ` để xuống dòng thả ga
+        const stepsValue = document.getElementById('recipeSteps').value;
+        const notesValue = document.getElementById('recipeNotes').value;
+
+        json += `  steps: \`\n${stepsValue}\n\`,\n\n`;
+        json += `  notes: \`\n${notesValue}\n\`\n},`;
+
         document.getElementById('output').textContent = json;
     }
 
@@ -248,5 +257,4 @@
     }
 </script>
 </body>
-    </html>
-    
+</html>
