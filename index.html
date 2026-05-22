@@ -113,7 +113,7 @@
 <body>
 
 <div class="container">
-    <h2>Trình Tạo Công Thức (Gọn Nhẹ)</h2>
+    <h2>Trình Tạo Công Thức Món Ăn</h2>
     
     <label>Tên món:</label>
     <input type="text" id="recipeName" value="Phở Bò Bản Ngắn">
@@ -137,17 +137,45 @@
     <button class="btn-copy" onclick="copy()">COPY TOÀN BỘ MÃ</button>
 </div>
 
+<datalist id="unitSuggestions">
+    <option value="ml"></option>
+    <option value="lít"></option>
+    <option value="g"></option>
+    <option value="kg"></option>
+    <option value="nhúm"></option>
+    <option value="thìa cafe"></option>
+    <option value="thìa canh"></option>
+    <option value="củ"></option>
+    <option value="quả"></option>
+    <option value="nhánh"></option>
+    <option value="lát"></option>
+    <option value="bát"></option>
+    <option value="ít"></option>
+</datalist>
+
+<datalist id="stateSuggestions">
+    <option value="băm nhỏ"></option>
+    <option value="thái sợi"></option>
+    <option value="thái hạt lựu"></option>
+    <option value="vò sơ"></option>
+    <option value="thái 1 cm"></option>
+    <option value="rửa sạch"></option>
+    <option value="trần sơ"></option>
+    <option value="thái mỏng"></option>
+    <option value="đập dập"></option>
+</datalist>
+
 <script>
     let ingCount = 0;
 
     function addIng(n='', a='', u='', s='') {
         ingCount++;
         const div = document.createElement('div');
-        div.className = 'ing-card active'; // Mặc định tạo mới thì bung ra
+        div.className = 'ing-card active'; 
         
-        // Thu gọn tất cả các hộp cũ lại để nhường không gian cho hộp mới
         document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
 
+        // CẬP NHẬT: Sử dụng thuộc tính onfocus="this.blur(); this.focus();" kết hợp để ép trình duyệt di động hiển thị danh sách ngay khi chạm vào.
         div.innerHTML = `
             <div class="ing-header" onclick="toggleCard(this.parentElement)">
                 <span class="title-text">${n ? n : 'Nguyên liệu mới #' + ingCount}</span>
@@ -159,35 +187,32 @@
                     <div class="field"><span>Số lượng (a):</span><input class="a" value="${a}"></div>
                 </div>
                 <div class="grid-2">
-                    <div class="field"><span>Đơn vị (u):</span><input class="u" value="${u}"></div>
-                    <div class="field"><span>Sơ chế (s):</span><input class="s" value="${s}"></div>
+                    <div class="field"><span>Đơn vị (u):</span><input class="u" value="${u}" list="unitSuggestions" onfocus="this.setAttribute('placeholder', this.value); this.value=''; " onblur="if(this.value=='') this.value=this.getAttribute('placeholder');"></div>
+                    <div class="field"><span>Sơ chế (s):</span><input class="s" value="${s}" list="stateSuggestions" onfocus="this.setAttribute('placeholder', this.value); this.value=''; " onblur="if(this.value=='') this.value=this.getAttribute('placeholder');"></div>
                 </div>
                 <button class="btn-del" onclick="this.closest('.ing-card').remove()">Xóa nguyên liệu này</button>
             </div>
         `;
         document.getElementById('ingredientsList').appendChild(div);
         
-        // Tự động cuộn nhẹ xuống hộp mới tạo
         div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Đóng/Mở hộp khi bấm vào tiêu đề
     function toggleCard(card) {
         card.classList.toggle('active');
     }
 
-    // Tự động cập nhật tên nguyên liệu lên tiêu đề cho dễ quản lý
     function updateTitle(input) {
         const card = input.closest('.ing-card');
         const titleText = card.querySelector('.title-text');
         titleText.textContent = input.value.trim() || "Chưa nhập tên";
     }
 
-    // Thêm sẵn dữ liệu mẫu ban đầu (đóng lại cho gọn)
-    addIng("Bánh phở tươi", "500", "g", "Trần sơ");
-    addIng("Thịt bò tái", "200", "g", "Thái mỏng");
-    addIng("Nước cốt xương", "1.5", "Lít", "Ninh ngọt");
-    addIng("Hành lá + Rau thơm", "1", "Ít", "Rửa sạch");
+    // Khởi tạo dữ liệu mẫu ban đầu
+    addIng("Bánh phở tươi", "500", "g", "trần sơ");
+    addIng("Thịt bò tái", "200", "g", "thái mỏng");
+    addIng("Nước cốt xương", "1.5", "lít", "ninh ngọt");
+    addIng("Hành lá + Rau thơm", "1", "ít", "rửa sạch");
     document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
 
     function generate() {
@@ -217,4 +242,5 @@
     }
 </script>
 </body>
-</html>
+    </html>
+    
