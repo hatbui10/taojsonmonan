@@ -80,6 +80,7 @@
             gap: 8px;
         }
         .field { margin-bottom: 6px; }
+        .field.full-width { grid-column: span 2; }
         .field span { font-size: 0.7rem; color: #888; display: block; margin-bottom: 2px; }
 
         button {
@@ -137,6 +138,19 @@
     <button class="btn-copy" onclick="copy()">COPY TOÀN BỘ MÃ</button>
 </div>
 
+<!-- Datalist gợi ý Phân loại -->
+<datalist id="categorySuggestions">
+    <option value="hãng mắm chay Liên Thành"></option>
+    <option value="hãng Maggi"></option>
+    <option value="hãng Ajinomoto"></option>
+    <option value="Nước dùng"></option>
+    <option value="Nước sốt"></option>
+    <option value="Gia vị ướp"></option>
+    <option value="Đồ nêm"></option>
+    <option value="Rau ăn kèm"></option>
+    <option value="Phần topping"></option>
+</datalist>
+
 <datalist id="unitSuggestions">
     <option value="cm"></option>
     <option value="ml"></option>
@@ -174,7 +188,7 @@
 <script>
     let ingCount = 0;
 
-    function addIng(n='', a='', u='', s='') {
+    function addIng(n='', a='', u='', s='', c='') {
         ingCount++;
         const div = document.createElement('div');
         div.className = 'ing-card active'; 
@@ -187,10 +201,19 @@
                 <span class="icon">▼</span>
             </div>
             <div class="ing-body">
+                <!-- Tên nguyên liệu nằm trên cùng chiếm trọn 1 hàng -->
+                <div class="field full-width">
+                    <span>Tên (n):</span>
+                    <input class="n" value="${n}" oninput="updateTitle(this)">
+                </div>
+                
+                <!-- Phân loại và Số lượng chia đôi thành 2 cột -->
                 <div class="grid-2">
-                    <div class="field"><span>Tên (n):</span><input class="n" value="${n}" oninput="updateTitle(this)"></div>
+                    <div class="field"><span>Phân loại (c):</span><input class="c" value="${c}" list="categorySuggestions" onfocus="this.setAttribute('placeholder', this.value); this.value=''; " onblur="if(this.value=='') this.value=this.getAttribute('placeholder');"></div>
                     <div class="field"><span>Số lượng (a):</span><input class="a" value="${a}"></div>
                 </div>
+                
+                <!-- Đơn vị và Sơ chế chia đôi thành 2 cột -->
                 <div class="grid-2">
                     <div class="field"><span>Đơn vị (u):</span><input class="u" value="${u}" list="unitSuggestions" onfocus="this.setAttribute('placeholder', this.value); this.value=''; " onblur="if(this.value=='') this.value=this.getAttribute('placeholder');"></div>
                     <div class="field"><span>Sơ chế (s):</span><input class="s" value="${s}" list="stateSuggestions" onfocus="this.setAttribute('placeholder', this.value); this.value=''; " onblur="if(this.value=='') this.value=this.getAttribute('placeholder');"></div>
@@ -212,14 +235,13 @@
         titleText.textContent = input.value.trim() || "Chưa nhập tên";
     }
 
-    // Khởi tạo dữ liệu mẫu
-    addIng("Bánh phở tươi", "500", "g", "trần sơ");
-    addIng("Thịt bò tái", "200", "g", "thái mỏng");
-    addIng("Nước cốt xương", "1.5", "lít", "ninh ngọt");
-    addIng("Hành lá + Rau thơm", "1", "ít", "rửa sạch");
+    // Khởi tạo dữ liệu mẫu đúng cấu trúc
+    addIng("Bánh phở tươi", "500", "g", "trần sơ", "Nguyên liệu chính");
+    addIng("Thịt bò tái", "200", "g", "thái mỏng", "Nguyên liệu chính");
+    addIng("Nước cốt xương", "1.5", "lít", "ninh ngọt", "Nước dùng / Nước sốt");
+    addIng("Hành lá + Rau thơm", "1", "ít", "rửa sạch", "Rau ăn kèm / Đồ nêm");
     document.querySelectorAll('.ing-card').forEach(card => card.classList.remove('active'));
 
-    // HÀM GENERATE ĐÃ ĐƯỢC FIX HOÀN TOÀN LỖI ĐỊNH DẠNG CHUỖI ĐA DÒNG
     function generate() {
         let ings = [];
         document.querySelectorAll('.ing-card').forEach(c => {
@@ -227,21 +249,20 @@
             const a = c.querySelector('.a').value.trim();
             const u = c.querySelector('.u').value.trim();
             const s = c.querySelector('.s').value.trim();
-            if(n || a || u || s) {
-                ings.push({ n, a, u, s });
+            const category = c.querySelector('.c').value.trim();
+            if(n || a || u || s || category) {
+                ings.push({ n, a, u, s, c: category });
             }
         });
 
-        // Tạo phần đầu JSON bằng Template String sạch sẽ
         let json = `{\n  name: "${document.getElementById('recipeName').value.trim()}",\n  ings: [\n`;
         
         ings.forEach((i, idx) => {
-            json += `    { n: "${i.n}", a: "${i.a}", u: "${i.u}", s: "${i.s}" }${idx < ings.length - 1 ? ',' : ''}\n`;
+            json += `    { n: "${i.n}", a: "${i.a}", u: "${i.u}", s: "${i.s}", c: "${i.c}" }${idx < ings.length - 1 ? ',' : ''}\n`;
         });
         
         json += `  ],\n\n`;
 
-        // Ép định dạng bọc nội dung steps và notes vào trong cặp dấu huyền ` để xuống dòng thả ga
         const stepsValue = document.getElementById('recipeSteps').value;
         const notesValue = document.getElementById('recipeNotes').value;
 
@@ -258,4 +279,5 @@
     }
 </script>
 </body>
-</html>
+    </html>
+    
